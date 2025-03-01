@@ -15,7 +15,7 @@ struct HomeView: View {
     var body: some View {
         NavigationStack {
             ZStack(alignment: .topLeading) {
-                Color.gray.opacity(0.6)
+                Color.lightGray
                     .frame(height: 450)
                     .clipShape(RoundedRectangle(cornerRadius: 40))
                     .ignoresSafeArea()
@@ -34,13 +34,13 @@ struct HomeView: View {
                         furniturePhoto3D
                     }
                     
-                    ScrollView(showsIndicators: false) {
-                        
-                        searchFurniture
-                        
-                        furnitureList
-                    }
+                    bodyScrolling
+                    
+                    .padding(.top)
                 }
+            }
+            .onAppear {
+                homeViewModel.fetchData()
             }
             .withScreenSize()
         }
@@ -137,21 +137,41 @@ struct HomeView: View {
         .cornerRadius(10)
         .shadow(radius: 5)
         .padding()
-        .padding(.top)
     }
     
     private var furnitureList: some View {
-        ScrollView {
-            let gridItems = [GridItem(.flexible()), GridItem(.flexible())]
-
-            LazyVGrid(columns: gridItems, spacing: 20) {
-                ForEach(homeViewModel.filteredFurniture.indices, id: \.self) { item in
-                    FurnitureCell(furnitureCellData: $homeViewModel.furnitureCellData[item])
-                        .padding(.horizontal)
-                }
-            }
-            .padding()
+        let filteredFurniture = homeViewModel.furnitureItems.filter { item in
+            homeViewModel.searchText.isEmpty || item.title.lowercased().contains(homeViewModel.searchText.lowercased())
         }
+
+        return LazyVGrid(columns: homeViewModel.gridItems, spacing: 20) {
+            ForEach(filteredFurniture, id: \.id) { item in
+                FurnitureCell(furnitureCellData: item, toggleFavoriteAction: {
+                    toggleFavorite(for: item)
+                })
+            }
+        }
+    }
+    
+    private func toggleFavorite(for item: FurnitureCellData) {
+        if let index = homeViewModel.furnitureItems.firstIndex(where: { $0.id == item.id }) {
+            homeViewModel.furnitureItems[index].isFavorite.toggle()
+        }
+    }
+    
+    private var bodyScrolling: some View {
+        ScrollView {
+            searchFurniture
+            
+            if let errorMessage = homeViewModel.errorMessage {
+                Text("Error: \(errorMessage)")
+                    .foregroundColor(.red)
+                    .padding()
+            } else {
+                furnitureList
+            }
+        }
+        .padding(.top)
     }
 }
 

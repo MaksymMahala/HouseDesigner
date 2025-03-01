@@ -7,19 +7,11 @@
 
 import SwiftUI
 
-struct FurnitureCellData {
-    let id: Int
-    let color: Color
-    let title: String
-    let price: Int
-    var isFavorite: Bool
-    var furniture3dTitle: String
-}
-
 struct FurnitureCell: View {
     @Environment(\.colorScheme) var colorScheme
-    @Binding var furnitureCellData: FurnitureCellData
-
+    var furnitureCellData: FurnitureCellData
+    var toggleFavoriteAction: () -> Void
+    
     var body: some View {
         ZStack {
             VStack {
@@ -30,7 +22,7 @@ struct FurnitureCell: View {
                         .edgesIgnoringSafeArea(.all)
                     
                     Button {
-                        furnitureCellData.isFavorite.toggle()
+                        toggleFavoriteAction()
                     } label: {
                         Image(systemName: furnitureCellData.isFavorite ? "heart.fill" : "heart")
                             .resizable()
@@ -46,6 +38,7 @@ struct FurnitureCell: View {
                 
                 VStack(spacing: 10) {
                     Text(furnitureCellData.title)
+                        .multilineTextAlignment(.center)
                         .foregroundStyle(Color.primary)
                         .font(Font.plusJakartaSansRagular15)
                     
@@ -56,7 +49,8 @@ struct FurnitureCell: View {
             }
         }
         .padding()
-        .background(furnitureCellData.color)
+        .frame(width: 170, height: 230)
+        .background(furnitureCellData.uiColor)
         .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 }
