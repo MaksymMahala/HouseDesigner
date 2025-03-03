@@ -39,4 +39,5 @@ extension Color {
     }
     
     static let lightGray: Color = Color.gray.opacity(0.6)
+    static let lightWhite: Color = Color.white.opacity(0.4)
 }

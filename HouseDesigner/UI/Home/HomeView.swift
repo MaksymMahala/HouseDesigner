@@ -7,6 +7,62 @@
 
 import SwiftUI
 
+struct CustomRoundedShape: Shape {
+    var cornerRadius: CGFloat
+    var roundLeftCorners: Bool
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+
+        if roundLeftCorners {
+            path.move(to: CGPoint(x: rect.minX, y: rect.minY + cornerRadius))
+            path.addArc(center: CGPoint(x: rect.minX + cornerRadius, y: rect.minY + cornerRadius),
+                        radius: cornerRadius,
+                        startAngle: .degrees(180),
+                        endAngle: .degrees(270),
+                        clockwise: false)
+
+            path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+
+            path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+
+            path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+            path.addArc(center: CGPoint(x: rect.minX + cornerRadius, y: rect.maxY - cornerRadius),
+                        radius: cornerRadius,
+                        startAngle: .degrees(90),
+                        endAngle: .degrees(180),
+                        clockwise: false)
+
+        } else {
+            path.move(to: CGPoint(x: rect.minX, y: rect.minY))
+                   path.addLine(to: CGPoint(x: rect.maxX - cornerRadius, y: rect.minY))
+                   
+                   path.addArc(center: CGPoint(x: rect.maxX - cornerRadius, y: rect.minY + cornerRadius),
+                               radius: cornerRadius,
+                               startAngle: .degrees(270),
+                               endAngle: .degrees(360),
+                               clockwise: false)
+
+                   path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - cornerRadius))
+                   
+                   path.addArc(center: CGPoint(x: rect.maxX - cornerRadius, y: rect.maxY - cornerRadius),
+                               radius: cornerRadius,
+                               startAngle: .degrees(0),
+                               endAngle: .degrees(90),
+                               clockwise: false)
+
+                   path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+
+                   path.addLine(to: CGPoint(x: rect.minX, y: rect.minY))
+
+        }
+
+        path.closeSubpath()
+        return path
+    }
+}
+
+
 struct HomeView: View {
     @StateObject private var homeViewModel: HomeViewModel = HomeViewModel()
     @Environment(\.screenSize) var screenSize
@@ -42,6 +98,9 @@ struct HomeView: View {
             .onAppear {
                 homeViewModel.fetchData()
             }
+            .onDisappear {
+                homeViewModel.stopTimer()
+            }
             .withScreenSize()
         }
     }
@@ -62,19 +121,50 @@ struct HomeView: View {
     
     private var furniturePhoto3D: some View {
         ZStack(alignment: .bottom) {
-            //Furniture 3D !!!
-            
-            SceneView(sceneString: "dyvan.dae")
+            HStack {
+                Button {
+                    homeViewModel.decrementCurrentFurniture3DTitle()
+                } label: {
+                    Image(systemName: "arrow.left")
+                        .foregroundStyle(Color.black)
+                        .font(.headline)
+                        .padding(.vertical, 20)
+                        .padding(.horizontal, 5)
+                        .background(Color.lightWhite)
+                        .clipShape(CustomRoundedShape(cornerRadius: 20, roundLeftCorners: false))
+                }
+                
+                if let furnitureItem = homeViewModel.furnitureItem {
+                    NavigationLink(destination: DetailView(furnitureItem: furnitureItem)) {
+                        SceneView(sceneString: homeViewModel.furnitureItems.isEmpty ? Constants.Default.default3DTitleFurniture : homeViewModel.furnitureItems[homeViewModel.currentFurnitureTitle3DIndex].furniture3dTitle)
+                    }
+                }
+                
+                Button {
+                    homeViewModel.incrementCurrentFurniture3DTitle()
+                } label: {
+                    Image(systemName: "arrow.right")
+                        .foregroundStyle(Color.black)
+                        .font(.headline)
+                        .padding(.vertical, 20)
+                        .padding(.horizontal, 5)
+                        .background(Color.lightWhite)
+                        .clipShape(CustomRoundedShape(cornerRadius: 20, roundLeftCorners: true))
+                }
+
+            }
             
             HStack {
-                Text("$230")
-                    .font(Font.headline)
-                    .foregroundStyle(Color.privatePriomaryColorBlack(colorScheme: colorScheme))
-                    .padding()
-                    .padding(.horizontal)
-                    .background(Color.privatePriomaryColorWhite(colorScheme: colorScheme))
-                    .clipShape(RoundedRectangle(cornerRadius: 25))
-
+                if let price = homeViewModel.furnitureItem?.price {
+                    Text("$\(price)")
+                        .font(Font.headline)
+                        .foregroundStyle(Color.privatePriomaryColorBlack(colorScheme: colorScheme))
+                        .padding()
+                        .padding(.horizontal)
+                        .background(Color.privatePriomaryColorWhite(colorScheme: colorScheme))
+                        .clipShape(RoundedRectangle(cornerRadius: 25))
+                }
+                
                 Spacer()
                 
                 Button {
@@ -146,9 +236,11 @@ struct HomeView: View {
 
         return LazyVGrid(columns: homeViewModel.gridItems, spacing: 20) {
             ForEach(filteredFurniture, id: \.id) { item in
-                FurnitureCell(furnitureCellData: item, toggleFavoriteAction: {
-                    toggleFavorite(for: item)
-                })
+                NavigationLink(destination: DetailView(furnitureItem: item)) {
+                    FurnitureCell(furnitureCellData: item, toggleFavoriteAction: {
+                        toggleFavorite(for: item)
+                    })
+                }
             }
         }
     }

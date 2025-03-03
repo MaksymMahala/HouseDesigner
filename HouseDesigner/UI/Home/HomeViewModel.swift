@@ -13,17 +13,21 @@ class HomeViewModel: ObservableObject {
     @Published var isFavorite = false
     @Published var furnitureItems: [FurnitureCellData] = []
     @Published var errorMessage: String? = nil
+    @Published var currentFurnitureTitle3DIndex = 0
     
-    @Published var selectedfurniture: FurnitureCellData?
-
+    let gridItems = [GridItem(.flexible()), GridItem(.flexible())]
+    var furnitureItem: FurnitureCellData?
+    
+    private var timer: Timer?
     private let furnitureService: FurnitureServiceProtocol
     
     init(furnitureService: FurnitureServiceProtocol = FurnitureService.shared) {
         self.furnitureService = furnitureService
     }
     
-    let gridItems = [GridItem(.flexible()), GridItem(.flexible())]
-    
+    deinit {
+        timer?.invalidate()
+    }
       
     func fetchData() {
         furnitureService.fetchFurnitureData { result in
@@ -31,6 +35,9 @@ class HomeViewModel: ObservableObject {
             case .success(let items):
                 DispatchQueue.main.async {
                     self.furnitureItems = items
+                    self.furnitureItem = items[self.currentFurnitureTitle3DIndex]
+                    self.currentFurnitureTitle3DIndex = 0 // Start at first item
+                    self.startTimer() // Start changing titles when data is loaded
                 }
             case .failure(let error):
                 DispatchQueue.main.async {
@@ -39,24 +46,38 @@ class HomeViewModel: ObservableObject {
             }
         }
     }
-}
-
-
-struct ContentView1: View {
-    var body: some View {
-        SceneView(sceneString: "Sofa-green.dae")
-            .frame(width: 300, height: 300)
-            .padding(.top, 40)
-            .edgesIgnoringSafeArea(.all)
+    
+    func startTimer() {
+        guard !furnitureItems.isEmpty else { return } // Ensure list is not empty
+        
+        timer?.invalidate() // Stop previous timer if exists
+        
+        timer = Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { _ in
+            DispatchQueue.main.async {
+                if !self.furnitureItems.isEmpty {
+                    self.currentFurnitureTitle3DIndex = (self.currentFurnitureTitle3DIndex + 1) % self.furnitureItems.count
+                    self.furnitureItem = self.furnitureItems[self.currentFurnitureTitle3DIndex]
+                    print("Timer updated index: \(self.currentFurnitureTitle3DIndex)") // Debugging
+                }
+            }
+        }
+        
+        print("Timer started!")
     }
-}
-
-
-struct ContentView2: View {
-    var body: some View {
-        SceneView(sceneString: "dyvan.dae")
-            .frame(width: 400, height: 300)
-            .padding(.top, 40)
-            .edgesIgnoringSafeArea(.all)
+    
+    func stopTimer() {
+        timer?.invalidate()
+    }
+    
+    func incrementCurrentFurniture3DTitle() {
+        currentFurnitureTitle3DIndex += 1
+    }
+    
+    func decrementCurrentFurniture3DTitle() {
+        if currentFurnitureTitle3DIndex == 0 {
+            currentFurnitureTitle3DIndex = 0
+        } else {
+            currentFurnitureTitle3DIndex -= 1
+        }
     }
 }
