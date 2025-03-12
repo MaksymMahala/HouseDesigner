@@ -11,10 +11,11 @@ struct FurnitureCellData: Codable {
     var id: Int
     var color: String
     let title: String
-    let price: Int
+    let price: Double
     var isFavorite: Bool
     var furniture3dTitle: String
-    
+    var category: String
+
     var uiColor: Color {
         return Color(hex: color)
     }

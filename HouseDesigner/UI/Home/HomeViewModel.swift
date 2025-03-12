@@ -14,7 +14,15 @@ class HomeViewModel: ObservableObject {
     @Published var furnitureItems: [FurnitureCellData] = []
     @Published var errorMessage: String? = nil
     @Published var currentFurnitureTitle3DIndex = 0
+    @Published var isSearch = false
     
+    @Published var selectedCategories: Int = 0 {
+        didSet {
+            fetchData()
+        }
+    }
+    
+    let categories = ["Furniture", "Living", "Bedroom"]
     let gridItems = [GridItem(.flexible()), GridItem(.flexible())]
     var furnitureItem: FurnitureCellData?
     
@@ -34,7 +42,7 @@ class HomeViewModel: ObservableObject {
             switch result {
             case .success(let items):
                 DispatchQueue.main.async {
-                    self.furnitureItems = items
+                    self.furnitureItems = self.filterItemsByCategory(items: items)
                     self.furnitureItem = items[self.currentFurnitureTitle3DIndex]
                     self.currentFurnitureTitle3DIndex = 0 // Start at first item
                     self.startTimer() // Start changing titles when data is loaded
@@ -44,6 +52,19 @@ class HomeViewModel: ObservableObject {
                     self.errorMessage = error.localizedDescription
                 }
             }
+        }
+    }
+    
+    func filterItemsByCategory(items: [FurnitureCellData]) -> [FurnitureCellData] {
+        switch selectedCategories {
+        case 0: // For "Furniture" category
+            return items.filter { $0.category == "Furniture" }
+        case 1: // For "Lighting" category
+            return items.filter { $0.category == "LivingRoom" }
+        case 2: // For "Appliances" category
+            return items.filter { $0.category == "BedRoom" }
+        default:
+            return items
         }
     }
     

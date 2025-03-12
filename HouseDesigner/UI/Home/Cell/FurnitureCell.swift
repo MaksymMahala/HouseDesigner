@@ -42,7 +42,7 @@ struct FurnitureCell: View {
                         .foregroundStyle(Color.primary)
                         .font(Font.plusJakartaSansRagular15)
                     
-                    Text("$\(furnitureCellData.price)")
+                    Text("$\(String(format: "%.0f", furnitureCellData.price))")
                         .foregroundStyle(Color.primary)
                         .font(Font.plusJakartaSansBold15)
                 }

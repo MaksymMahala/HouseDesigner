@@ -7,62 +7,6 @@
 
 import SwiftUI
 
-struct CustomRoundedShape: Shape {
-    var cornerRadius: CGFloat
-    var roundLeftCorners: Bool
-
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-
-        if roundLeftCorners {
-            path.move(to: CGPoint(x: rect.minX, y: rect.minY + cornerRadius))
-            path.addArc(center: CGPoint(x: rect.minX + cornerRadius, y: rect.minY + cornerRadius),
-                        radius: cornerRadius,
-                        startAngle: .degrees(180),
-                        endAngle: .degrees(270),
-                        clockwise: false)
-
-            path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
-
-            path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
-
-            path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
-            path.addArc(center: CGPoint(x: rect.minX + cornerRadius, y: rect.maxY - cornerRadius),
-                        radius: cornerRadius,
-                        startAngle: .degrees(90),
-                        endAngle: .degrees(180),
-                        clockwise: false)
-
-        } else {
-            path.move(to: CGPoint(x: rect.minX, y: rect.minY))
-                   path.addLine(to: CGPoint(x: rect.maxX - cornerRadius, y: rect.minY))
-                   
-                   path.addArc(center: CGPoint(x: rect.maxX - cornerRadius, y: rect.minY + cornerRadius),
-                               radius: cornerRadius,
-                               startAngle: .degrees(270),
-                               endAngle: .degrees(360),
-                               clockwise: false)
-
-                   path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - cornerRadius))
-                   
-                   path.addArc(center: CGPoint(x: rect.maxX - cornerRadius, y: rect.maxY - cornerRadius),
-                               radius: cornerRadius,
-                               startAngle: .degrees(0),
-                               endAngle: .degrees(90),
-                               clockwise: false)
-
-                   path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
-
-                   path.addLine(to: CGPoint(x: rect.minX, y: rect.minY))
-
-        }
-
-        path.closeSubpath()
-        return path
-    }
-}
-
-
 struct HomeView: View {
     @StateObject private var homeViewModel: HomeViewModel = HomeViewModel()
     @Environment(\.screenSize) var screenSize
@@ -70,29 +14,60 @@ struct HomeView: View {
     
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .topLeading) {
-                Color.lightGray
-                    .frame(height: 450)
-                    .clipShape(RoundedRectangle(cornerRadius: 40))
-                    .ignoresSafeArea()
-                
+            ScrollView {
                 VStack(alignment: .leading) {
-                    VStack {
+                    HStack {
+                        Text("House Designer")
+                            .font(Font.plusJakartaSansBold22)
+                            .foregroundStyle(Color.primary)
+                        
+                        Spacer()
+                        
                         HStack {
-                            titleBox
-                            
-                            Spacer()
+                            searchButton
                             
                             cartButton
                         }
-                        .padding(.horizontal)
+                    }
+                    .padding(.horizontal)
+                    
+                    Button {
                         
-                        furniturePhoto3D
+                    } label: {
+                        Image(.banner)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal)
                     }
                     
-                    bodyScrolling
+                    categories
                     
-                    .padding(.top)
+                    VStack(alignment: .leading) {
+                        ZStack {
+                            Color.blue.opacity(0.5)
+                                .cornerRadius(15)
+                            
+                            VStack {
+                                HStack {
+                                    titleBox
+                                    
+                                    Spacer()
+                                }
+                                .padding(.horizontal)
+                                
+                                Spacer()
+                                
+                                furniturePhoto3D
+                                
+                                Spacer()
+                                Spacer()
+                            }
+                        }
+                        .padding(.horizontal)
+                        
+                        main
+                    }
                 }
             }
             .onAppear {
@@ -135,8 +110,10 @@ struct HomeView: View {
                 }
                 
                 if let furnitureItem = homeViewModel.furnitureItem {
-                    NavigationLink(destination: DetailView(furnitureItem: furnitureItem)) {
+                    NavigationLink(destination: FurnitureDetailView(furnitureItem: furnitureItem)) {
                         SceneView(sceneString: homeViewModel.furnitureItems.isEmpty ? Constants.Default.default3DTitleFurniture : homeViewModel.furnitureItems[homeViewModel.currentFurnitureTitle3DIndex].furniture3dTitle)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 260)
                     }
                 }
                 
@@ -156,7 +133,7 @@ struct HomeView: View {
             
             HStack {
                 if let price = homeViewModel.furnitureItem?.price {
-                    Text("$\(price)")
+                    Text("$\(String(format: "%.0f", price))")
                         .font(Font.headline)
                         .foregroundStyle(Color.privatePriomaryColorBlack(colorScheme: colorScheme))
                         .padding()
@@ -169,14 +146,17 @@ struct HomeView: View {
                 
                 Button {
                     homeViewModel.isFavorite.toggle()
+                    if let furnitureItem = homeViewModel.furnitureItem {
+                        CoreDataManager.shared.addFavorite(id: Int64(furnitureItem.id), name: furnitureItem.title, price: furnitureItem.price, userEmail: UserDefaultsManager.getUserEmail() ?? "invalid email", image: furnitureItem.furniture3dTitle)
+                    }
                 } label: {
                     Image(systemName: homeViewModel.isFavorite ? "heart.fill" : "heart")
                         .resizable()
                         .scaledToFit()
                         .frame(width: 20, height: 20)
                         .padding()
-                        .foregroundStyle(homeViewModel.isFavorite ? Color.green : Color.privatePriomaryColorWhite(colorScheme: colorScheme))
-                        .background(Color.privatePriomaryColorBlack(colorScheme: colorScheme))
+                        .foregroundStyle(homeViewModel.isFavorite ? Color.green : Color.privatePriomaryColorBlack(colorScheme: colorScheme))
+                        .background(Color.privatePriomaryColorWhite(colorScheme: colorScheme))
                         .clipShape(RoundedRectangle(cornerRadius: 15))
                 }
             }
@@ -193,9 +173,24 @@ struct HomeView: View {
         }) {
             Image(systemName: "cart")
                 .font(.headline)
-                .foregroundStyle(Color.privatePriomaryColorWhite(colorScheme: colorScheme))
+                .foregroundStyle(Color.privatePriomaryColorBlack(colorScheme: colorScheme))
                 .padding()
-                .background(Color.privatePriomaryColorBlack(colorScheme: colorScheme))
+                .background(Color.privatePriomaryColorWhite(colorScheme: colorScheme))
+                .clipShape(RoundedRectangle(cornerRadius: 15))
+        }
+    }
+    
+    private var searchButton: some View {
+        Button(action: {
+            withAnimation {
+                homeViewModel.isSearch.toggle()
+            }
+        }) {
+            Image(systemName: "magnifyingglass")
+                .font(.headline)
+                .foregroundStyle(Color.privatePriomaryColorBlack(colorScheme: colorScheme))
+                .padding()
+                .background(Color.privatePriomaryColorWhite(colorScheme: colorScheme))
                 .clipShape(RoundedRectangle(cornerRadius: 15))
         }
     }
@@ -236,9 +231,10 @@ struct HomeView: View {
 
         return LazyVGrid(columns: homeViewModel.gridItems, spacing: 20) {
             ForEach(filteredFurniture, id: \.id) { item in
-                NavigationLink(destination: DetailView(furnitureItem: item)) {
+                NavigationLink(destination: FurnitureDetailView(furnitureItem: item)) {
                     FurnitureCell(furnitureCellData: item, toggleFavoriteAction: {
                         toggleFavorite(for: item)
+                        CoreDataManager.shared.addFavorite(id: Int64(item.id), name: item.title, price: item.price, userEmail: UserDefaultsManager.getUserEmail() ?? "invalid email", image: item.furniture3dTitle)
                     })
                 }
             }
@@ -251,9 +247,42 @@ struct HomeView: View {
         }
     }
     
-    private var bodyScrolling: some View {
-        ScrollView {
-            searchFurniture
+    private var categories: some View {
+        ScrollView(.horizontal) {
+            HStack {
+                ForEach(homeViewModel.categories.indices, id: \.self) { index in
+                    Button {
+                        withAnimation {
+                            homeViewModel.selectedCategories = index
+                        }
+                    } label: {
+                        Text(homeViewModel.categories[index])
+                            .foregroundStyle(homeViewModel.selectedCategories == index ? Color.white : Color.black)
+                            .padding()
+                            .background {
+                                homeViewModel.selectedCategories == index ? Color.black : Color.white
+                            }
+                            .clipShape(RoundedRectangle(cornerRadius: 15))
+                    }
+                }
+                .foregroundStyle(Color.black)
+                .font(Font.plusJakartaSansBold17)
+                .padding(.leading)
+            }
+        }
+        .padding(.vertical, 25)
+    }
+    
+    private var main: some View {
+        VStack(alignment: .leading) {
+            if homeViewModel.isSearch {
+                searchFurniture
+            }
+            
+            Text("Popular")
+                .font(Font.plusJakartaSansBold22)
+                .foregroundStyle(Color.primary)
+                .padding(.horizontal)
             
             if let errorMessage = homeViewModel.errorMessage {
                 Text("Error: \(errorMessage)")

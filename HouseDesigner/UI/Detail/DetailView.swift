@@ -7,25 +7,77 @@
 
 import SwiftUI
 
-struct DetailView: View {
+struct FurnitureDetailView: View {
     let furnitureItem: FurnitureCellData
+    @Environment(\.presentationMode) var presentationMode
+    @State private var scaleFactor: Float = 1.0 // Default scale
 
     var body: some View {
-        VStack {
-            SceneDetailsView(sceneString: furnitureItem.furniture3dTitle)
+        ZStack {
+            SceneDetailsView(sceneString: furnitureItem.furniture3dTitle, scaleFactor: $scaleFactor)
                 .ignoresSafeArea()
             
-//            Text(furnitureItem.title)
-//                .font(.largeTitle)
-//                .foregroundColor(.white)
-//            
-//            Text(CurrencyFormatter.shared.format(price: Double(furnitureItem.price)))
-//                .font(.plusJakartaSansBold22)
-//                .padding()
-//                .foregroundColor(.white)
+            VStack {
+                HStack {
+                    Button(action: {
+                        withAnimation {
+                            presentationMode.wrappedValue.dismiss()
+                        }
+                    }) {
+                        Image(systemName: "chevron.left")
+                            .font(.title2)
+                            .foregroundColor(.black)
+                            .padding()
+                            .background(Color.white)
+                            .clipShape(Circle())
+                    }
+                    .padding(.horizontal)
+                    
+                    Spacer()
+                }
+                
+                Spacer()
+                
+                HStack {
+                    Text(furnitureItem.title) //add emoji
+                        .foregroundStyle(Color.black)
+                        .font(Font.plusJakartaSansRagular17)
+                        .padding(20)
+                        .background(Color.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 15))
+                        .padding(.horizontal)
+                    
+                    HStack {
+                        Button(action: {
+                            scaleFactor = max(0.5, scaleFactor - 0.1)
+                        }) {
+                            Text("-")
+                                .font(.headline)
+                                .foregroundStyle(Color.black)
+                                .frame(width: 30, height: 30)
+                                .background(Color.gray.opacity(0.2))
+                                .clipShape(Circle())
+                        }
+                        
+                        Button(action: {
+                            scaleFactor = min(3.0, scaleFactor + 0.1)
+                        }) {
+                            Text("+")
+                                .font(.headline)
+                                .foregroundStyle(Color.black)
+                                .frame(width: 30, height: 30)
+                                .background(Color.gray.opacity(0.2))
+                                .clipShape(Circle())
+                        }
+                    }
+                    .padding()
+                    .background(Color.black)
+                    .clipShape(RoundedRectangle(cornerRadius: 15))
+                    .padding(.bottom, 6)
+                }
+                .padding(.top)
+            }
         }
-                  
-//        .padding()
-//        .navigationTitle("Details")
+        .navigationBarBackButtonHidden(true)
     }
 }

@@ -14,7 +14,7 @@ struct SceneView: UIViewRepresentable {
     func makeUIView(context: Context) -> SCNView {
         let sceneView = SCNView()
         sceneView.allowsCameraControl = true
-        sceneView.frame = CGRect(x: 20, y: 400, width: 300, height: 200)
+        sceneView.frame = CGRect(x: 20, y: 400, width: 250, height: 350)
         sceneView.backgroundColor = .clear
         loadScene(into: sceneView, named: sceneString)
         return sceneView
@@ -36,16 +36,20 @@ import SceneKit
 
 struct SceneDetailsView: UIViewRepresentable {
     let sceneString: String
-    
+    @Binding var scaleFactor: Float // Binding for scale control
+
     func makeUIView(context: Context) -> SCNView {
         let sceneView = SCNView()
         sceneView.allowsCameraControl = true
         sceneView.autoenablesDefaultLighting = true
-        sceneView.backgroundColor = .black // Default background
-        
+        sceneView.backgroundColor = .black
+
         if let scene = SCNScene(named: sceneString) {
             sceneView.scene = scene
             applyHDRIBackground(to: scene)
+
+            // Scale entire scene root node
+            scene.rootNode.scale = SCNVector3(scaleFactor, scaleFactor, scaleFactor)
         } else {
             print("🚨 Scene file not found: \(sceneString)")
         }
@@ -54,9 +58,8 @@ struct SceneDetailsView: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: SCNView, context: Context) {
-        if let scene = SCNScene(named: sceneString) {
-            uiView.scene = scene
-            applyHDRIBackground(to: scene)
+        if let rootNode = uiView.scene?.rootNode {
+            rootNode.scale = SCNVector3(scaleFactor, scaleFactor, scaleFactor)
         }
     }
 
@@ -65,13 +68,9 @@ struct SceneDetailsView: UIViewRepresentable {
             print("🚨 HDRI file not found in bundle.")
             return
         }
-        
+
         let hdriURL = URL(fileURLWithPath: hdriPath)
-        
-        // ✅ Set HDRI as SceneKit background
         scene.background.contents = hdriURL
-        
-        // ✅ Set HDRI as Lighting Environment
         scene.lightingEnvironment.contents = hdriURL
         scene.lightingEnvironment.intensity = 2.5
     }
