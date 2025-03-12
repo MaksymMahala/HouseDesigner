@@ -17,7 +17,9 @@ struct CustomTabBarView: View {
                 case 0:
                     HomeView()
                 case 1:
-                    Text("1")
+                    FavoriteView()
+                case 2:
+                    ProfileView()
                 default:
                     Text("2")
                 }

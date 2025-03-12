@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		84C577AA2D73137A00F29373 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = 84C577A92D73137A00F29373 /* Alamofire */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		84940FB52D71D5E9006938F9 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -65,6 +69,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				84C577AA2D73137A00F29373 /* Alamofire in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -125,6 +130,7 @@
 			);
 			name = HouseDesigner;
 			packageProductDependencies = (
+				84C577A92D73137A00F29373 /* Alamofire */,
 			);
 			productName = HouseDesigner;
 			productReference = 84940FA42D71D5E7006938F9 /* HouseDesigner.app */;
@@ -208,6 +214,9 @@
 			);
 			mainGroup = 84940F9B2D71D5E7006938F9;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				84C577A82D73137A00F29373 /* XCRemoteSwiftPackageReference "Alamofire" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 84940FA52D71D5E7006938F9 /* Products */;
 			projectDirPath = "";
@@ -573,6 +582,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		84C577A82D73137A00F29373 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.10.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		84C577A92D73137A00F29373 /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 84C577A82D73137A00F29373 /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 84940F9C2D71D5E7006938F9 /* Project object */;
 }
